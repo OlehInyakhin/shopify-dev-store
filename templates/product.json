@@ -49,10 +49,13 @@
           "type": "description",
           "settings": {}
         },
-        "share": {
-          "type": "share",
+        "dynamic_accordion_dQjKQN": {
+          "type": "dynamic_accordion",
           "settings": {
-            "share_label": "Share"
+            "metafield_namespace": "custom",
+            "metafield_key_prefix": "accordion_item",
+            "max_items": 5,
+            "allow_multiple_open": false
           }
         }
       },
@@ -64,7 +67,7 @@
         "quantity_selector",
         "buy_buttons",
         "description",
-        "share"
+        "dynamic_accordion_dQjKQN"
       ],
       "settings": {
         "enable_sticky_info": true,
