@@ -54,7 +54,7 @@
           "settings": {
             "metafield_namespace": "custom",
             "metafield_key_prefix": "accordion_item",
-            "max_items": 5,
+            "max_items": 10,
             "allow_multiple_open": false
           }
         }
