@@ -49,7 +49,7 @@
           "type": "description",
           "settings": {}
         },
-        "dynamic_accordion_dQjKQN": {
+        "dynamic_accordion_86qnUF": {
           "type": "dynamic_accordion",
           "settings": {
             "metafield_namespace": "custom",
@@ -67,7 +67,7 @@
         "quantity_selector",
         "buy_buttons",
         "description",
-        "dynamic_accordion_dQjKQN"
+        "dynamic_accordion_86qnUF"
       ],
       "settings": {
         "enable_sticky_info": true,
