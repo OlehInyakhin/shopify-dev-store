@@ -2329,6 +2329,27 @@
               "default": "Heading"
             }
           }
+        },
+        "dynamic_accordion": {
+          "name": "Dynamic Accordion",
+          "settings": {
+            "metafield_namespace": {
+              "label": "Metafield Namespace",
+              "info": "The namespace for product metafields containing accordion data"
+            },
+            "metafield_key_prefix": {
+              "label": "Metafield Key Prefix",
+              "info": "Prefix for metafield keys (e.g., 'accordion_item_1_title', 'accordion_item_1_content')"
+            },
+            "max_items": {
+              "label": "Maximum Items",
+              "info": "Maximum number of accordion items to display"
+            },
+            "allow_multiple_open": {
+              "label": "Allow Multiple Open",
+              "info": "Allow multiple accordion items to be open simultaneously"
+            }
+          }
         }
       },
       "settings": {

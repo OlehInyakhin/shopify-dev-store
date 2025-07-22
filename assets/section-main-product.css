@@ -1084,6 +1084,8 @@ a.product__text {
 
 .js .product__media {
   overflow: hidden !important;
+  aspect-ratio: 1000 / 1000;
+  width: 100%;
 }
 
 .thumbnail[aria-current]:focus-visible {
