@@ -118,7 +118,6 @@ product-gallery {
 /* Responsive design */
 @media (max-width: 768px) {
   .swiper-container {
-    height: 350px;
     border-radius: 8px;
   }
   
@@ -142,10 +141,6 @@ product-gallery {
 }
 
 @media (max-width: 480px) {
-  .swiper-container {
-    height: 280px;
-  }
-  
   .swiper-button-next,
   .swiper-button-prev {
     width: 34px;
