@@ -52,10 +52,11 @@
         "dynamic_accordion_86qnUF": {
           "type": "dynamic_accordion",
           "settings": {
+            "icon": "none",
             "metafield_namespace": "custom",
             "metafield_key_prefix": "accordion_item",
             "max_items": 7,
-            "allow_multiple_open": false
+            "allow_multiple_open": true
           }
         }
       },
