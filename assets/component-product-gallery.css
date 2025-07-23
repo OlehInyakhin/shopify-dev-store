@@ -87,7 +87,7 @@ product-gallery {
 }
 
 .swiper-pagination-bullet {
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.35);
   opacity: 1;
   transition: all 0.3s ease;
   width: 12px;
