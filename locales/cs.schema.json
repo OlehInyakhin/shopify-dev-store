@@ -1651,6 +1651,9 @@
               },
               "options__2": {
                 "label": "Kulaté přepínače"
+              },
+              "options__3": {
+                "label": "Vzorník"
               }
             },
             "swatch_shape": {

@@ -1642,6 +1642,9 @@
               },
               "options__2": {
                 "label": "ピル型ボタン"
+              },
+              "options__3": {
+                "label": "見本"
               }
             },
             "swatch_shape": {

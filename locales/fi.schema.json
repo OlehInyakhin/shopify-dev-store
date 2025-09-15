@@ -1650,6 +1650,9 @@
               },
               "options__2": {
                 "label": "Pillerit"
+              },
+              "options__3": {
+                "label": "Väriruutu"
               }
             },
             "swatch_shape": {

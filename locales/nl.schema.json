@@ -1651,6 +1651,9 @@
               },
               "options__2": {
                 "label": "Pillen"
+              },
+              "options__3": {
+                "label": "Staal"
               }
             },
             "swatch_shape": {
