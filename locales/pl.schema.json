@@ -1651,6 +1651,9 @@
               },
               "options__2": {
                 "label": "Okrągłe przełączniki"
+              },
+              "options__3": {
+                "label": "Próbka"
               }
             },
             "swatch_shape": {

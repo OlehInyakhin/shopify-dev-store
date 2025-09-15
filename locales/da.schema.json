@@ -2537,6 +2537,9 @@
               },
               "options__2": {
                 "label": "Etiketter"
+              },
+              "options__3": {
+                "label": "Prøve"
               }
             },
             "swatch_shape": {

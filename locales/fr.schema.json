@@ -2537,6 +2537,9 @@
               },
               "options__2": {
                 "label": "Pilules"
+              },
+              "options__3": {
+                "label": "Échantillon"
               }
             },
             "swatch_shape": {

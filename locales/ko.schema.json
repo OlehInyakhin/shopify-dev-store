@@ -2537,6 +2537,9 @@
               },
               "options__2": {
                 "label": "타원형"
+              },
+              "options__3": {
+                "label": "견본"
               }
             },
             "swatch_shape": {

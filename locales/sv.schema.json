@@ -1642,6 +1642,9 @@
               },
               "options__2": {
                 "label": "Kapslar"
+              },
+              "options__3": {
+                "label": "Prov"
               }
             },
             "swatch_shape": {
