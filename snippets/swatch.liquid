@@ -12,6 +12,7 @@
 {% endcomment %}
 
 {%- liquid
+  assign swatch_curr = swatch
   assign swatch_value = null
   if swatch.image
     assign image_url = swatch.image | image_url: width: 50
