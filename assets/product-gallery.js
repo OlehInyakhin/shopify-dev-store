@@ -8,31 +8,31 @@ if (!customElements.get('product-gallery')) {
     }
 
     connectedCallback() {
-      // Add loading state
       const container = this.querySelector('.swiper-container');
+      // Initialize
+      this.initializeSwiper();
+      this.setupVariantFiltering();
+
+      // Remove loading state
       if (container) {
-        container.classList.add('swiper-loading');
+        container.classList.remove('swiper-loading');
       }
-      
-      // Initialize with a small delay to ensure DOM is ready
-      setTimeout(() => {
-        this.initializeSwiper();
-        this.setupVariantFiltering();
-        
-        // Remove loading state
-        if (container) {
-          container.classList.remove('swiper-loading');
-        }
-      }, 100);
     }
 
     async initializeSwiper() {
+      const swiperContainer = this.querySelector('.swiper-container');
+
       try {
         await this.waitForSwiper();
         
-        const swiperContainer = this.querySelector('.swiper-container');
         if (!swiperContainer) {
           throw new Error('Swiper container not found');
+        }
+        
+        // Ensure loading spinner is visible
+        const loadingSpinner = this.querySelector('.gallery-loading__spinner');
+        if (loadingSpinner) {
+          loadingSpinner.classList.remove('hidden');
         }
 
         // Get settings from the section (passed via data attributes or global variables)
@@ -81,9 +81,12 @@ if (!customElements.get('product-gallery')) {
           on: {
             init: () => {
               console.log('Swiper initialized successfully');
+              // Add a small delay to ensure images are loaded
+              setTimeout(() => this.hideLoadingState(), 500);
             },
-            slideChange: () => {
-              // Optional: Add analytics or custom events here
+            imagesReady: () => {
+              console.log('Swiper images ready');
+              this.hideLoadingState();
             },
             error: (error) => {
               console.error('Swiper error:', error);
@@ -106,6 +109,10 @@ if (!customElements.get('product-gallery')) {
         // Mark as initialized
         this.setAttribute('data-initialized', 'true');
         this.isInitialized = true;
+        
+
+        // Apply initial filtering
+        this.applyInitialFiltering();
         
       } catch (error) {
         console.error('Error initializing Swiper:', error);
@@ -137,7 +144,7 @@ if (!customElements.get('product-gallery')) {
     handleInitializationError(error) {
       const container = this.querySelector('.swiper-container');
       if (container) {
-        container.classList.remove('swiper-loading');
+        this.hideLoadingState();
         container.innerHTML = `
           <div style="display: flex; align-items: center; justify-content: center; height: 300px; background: #f8f9fa; border-radius: 8px; color: #6c757d; text-align: center; padding: 20px;">
             <div>
@@ -146,6 +153,29 @@ if (!customElements.get('product-gallery')) {
             </div>
           </div>
         `;
+      }
+    }
+    
+    hideLoadingState() {
+      const swiperContainer = this.querySelector('.swiper-container');
+      const loadingSpinner = this.querySelector('.gallery-loading__spinner');
+      
+      if (swiperContainer) {
+        // Add transition class for smooth appearance
+        swiperContainer.classList.add('swiper-transition');
+        swiperContainer.classList.remove('swiper-loading');
+        
+        // Show the swiper wrapper with a fade-in effect
+        const swiperWrapper = swiperContainer.querySelector('.swiper-wrapper');
+        if (swiperWrapper) {
+          swiperWrapper.style.opacity = '1';
+          swiperWrapper.style.visibility = 'visible';
+        }
+      }
+      
+      // Hide loading spinner
+      if (loadingSpinner) {
+        loadingSpinner.classList.add('hidden');
       }
     }
 
@@ -197,7 +227,10 @@ if (!customElements.get('product-gallery')) {
         
         // Only filter if this is a color-related option
         if (this.isColorOption(optionName)) {
-          this.filterSlidesByColor(selectedValue);
+          // Clean up the selected value to match the data-color format
+          // Remove any non-alphanumeric characters except spaces
+          const cleanedValue = selectedValue.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+          this.filterSlidesByColor(cleanedValue);
         }
       }
     }
@@ -214,7 +247,10 @@ if (!customElements.get('product-gallery')) {
         
         // Only filter if this is a color-related option
         if (this.isColorOption(optionName)) {
-          this.filterSlidesByColor(target.value.toLowerCase());
+          // Clean up the selected value to match the data-color format
+          // Remove any non-alphanumeric characters except spaces
+          const cleanedValue = target.value.toLowerCase().replace(/[^a-zA-Z0-9\s]/g, '').trim();
+          this.filterSlidesByColor(cleanedValue);
         }
       }
     }
@@ -227,9 +263,7 @@ if (!customElements.get('product-gallery')) {
       
       this.allSlides.forEach((slide, index) => {
         const slideColor = slide.dataset.color || '';
-        const shouldShow = !selectedColor || this.colorMatches(slideColor, selectedColor);
-
-        console.log(slideColor, selectedColor, shouldShow);
+        const shouldShow = this.colorMatches(slideColor, selectedColor);
         
         if (shouldShow) {
           slide.classList.remove('swiper-slide-hidden');
@@ -250,13 +284,28 @@ if (!customElements.get('product-gallery')) {
           this.swiper.slideTo(0, 300);
         }
       } else {
-        // If no slides match, show all slides
-        this.showAllSlides();
+        // If no slides match the selected color, try to find slides with no color data
+        const slidesWithNoColor = this.allSlides.filter(slide => !slide.dataset.color);
+        
+        if (slidesWithNoColor.length > 0) {
+          // Show slides with no color data
+          this.allSlides.forEach((slide) => {
+            if (!slide.dataset.color) {
+              slide.classList.remove('swiper-slide-hidden');
+              slide.style.display = 'flex';
+            }
+          });
+          this.swiper.update();
+          this.swiper.slideTo(0, 300);
+        } else {
+          // If still no visible slides, show all slides as fallback
+          this.showAllSlides();
+        }
       }
     }
 
     colorMatches(slideColor, selectedColor) {
-      if (!slideColor || !selectedColor) return true;
+      if (!slideColor || !selectedColor) return false;
       
       const normalizedSlideColor = slideColor.toLowerCase().trim();
       const normalizedSelectedColor = selectedColor.toLowerCase().trim();
@@ -264,8 +313,13 @@ if (!customElements.get('product-gallery')) {
       // Exact match
       if (normalizedSlideColor === normalizedSelectedColor) return true;
       
-      // Partial match (slide color contains selected color)
-      if (normalizedSlideColor.includes(normalizedSelectedColor)) return true;
+      // Check if slide color contains selected color as a whole word
+      const slideColorWords = normalizedSlideColor.split(/\s+/);
+      if (slideColorWords.includes(normalizedSelectedColor)) return true;
+      
+      // Check if selected color contains slide color as a whole word
+      const selectedColorWords = normalizedSelectedColor.split(/\s+/);
+      if (selectedColorWords.includes(normalizedSlideColor)) return true;
       
       return false;
     }
@@ -319,6 +373,69 @@ if (!customElements.get('product-gallery')) {
       return settings;
     }
 
+    applyInitialFiltering() {
+      if (!this.isInitialized || !this.swiper || !this.allSlides) {
+        console.log('Initial filtering skipped: gallery not fully initialized');
+        return;
+      }
+      
+      console.log('Applying initial filtering for product gallery');
+      
+      // Find all variant selectors on the page
+      const variantSelects = document.querySelectorAll('variant-selects');
+      if (!variantSelects.length) {
+        console.log('No variant selectors found on page');
+        return;
+      }
+      
+      console.log(`Found ${variantSelects.length} variant selectors`);
+      
+      // Check each variant selector for color options
+      variantSelects.forEach((variantSelect, index) => {
+        console.log(`Checking variant selector ${index + 1}`);
+        
+        // Check radio buttons (swatch/button picker)
+        const checkedRadio = variantSelect.querySelector('input[type="radio"]:checked');
+        if (checkedRadio) {
+          const optionContainer = checkedRadio.closest('.product-form__input');
+          const optionLabel = optionContainer?.querySelector('.form__label');
+          const optionName = optionLabel?.textContent?.toLowerCase() || '';
+          
+          console.log(`Found checked radio button with option name: ${optionName}`);
+          
+          if (this.isColorOption(optionName)) {
+            const selectedValue = checkedRadio.value.toLowerCase();
+            const cleanedValue = selectedValue.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+            console.log(`Applying initial color filter: ${cleanedValue}`);
+            this.filterSlidesByColor(cleanedValue);
+            return; // Stop after finding the first color option
+          }
+        }
+        
+        // Check select dropdowns
+        const selects = variantSelect.querySelectorAll('select');
+        console.log(`Found ${selects.length} select dropdowns`);
+        
+        for (const select of selects) {
+          const optionContainer = select.closest('.product-form__input');
+          const optionLabel = optionContainer?.querySelector('.form__label');
+          const optionName = optionLabel?.textContent?.toLowerCase() || '';
+          
+          console.log(`Checking select with option name: ${optionName}, value: ${select.value}`);
+          
+          if (this.isColorOption(optionName) && select.value) {
+            const selectedValue = select.value.toLowerCase();
+            const cleanedValue = selectedValue.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+            console.log(`Applying initial color filter: ${cleanedValue}`);
+            this.filterSlidesByColor(cleanedValue);
+            return; // Stop after finding the first color option
+          }
+        }
+      });
+      
+      console.log('No color options found for initial filtering');
+    }
+    
     disconnectedCallback() {
       // Clean up Swiper instance
       if (this.swiper) {

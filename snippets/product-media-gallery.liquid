@@ -11,13 +11,14 @@
 -%}
 
 <product-gallery>
-  <div class="swiper-container" 
+  <div class="swiper-container swiper-loading" 
        id="product-gallery-swiper-{{ section.id }}"
        data-enable-loop="{{ section.settings.enable_swiper_loop }}"
        data-enable-autoplay="{{ section.settings.enable_swiper_autoplay }}"
        data-autoplay-delay="{{ section.settings.swiper_autoplay_delay | default: 3000 }}"
        data-slides-per-view="{{ section.settings.swiper_slides_per_view_desktop | default: 1 }}"
        data-space-between="{{ section.settings.swiper_space_between | default: 10 }}">
+    {% render 'loading-spinner', class: 'gallery-loading__spinner' %}
     <div class="swiper-wrapper">
       {%- for media in product.media -%}
         <div class="swiper-slide" data-color="{{ media.alt | escape | downcase }}">
