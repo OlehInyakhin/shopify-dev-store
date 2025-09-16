@@ -144,16 +144,16 @@ product-gallery {
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
-  width: 60px;
-  height: 60px;
+  border-radius: inherit;
+  background: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .gallery-loading__spinner svg {
-  width: 100%;
-  height: 100%;
+  width: 60px;
+  height: 60px;
 }
 
 .gallery-loading__spinner .path {
