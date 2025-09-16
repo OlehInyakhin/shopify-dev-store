@@ -45,13 +45,13 @@ product-gallery {
   transform: scale(0.95);
 }
 
-/* Улучшенные стили для активного слайда */
+/* Enhanced styles for active slide */
 .swiper-slide-active {
   z-index: 2;
   transform: translateZ(0);
 }
 
-/* Улучшенные стили для анимации перехода */
+/* Enhanced styles for transition animation */
 .swiper-container-horizontal > .swiper-wrapper {
   transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
 }

@@ -90,6 +90,20 @@ if (!customElements.get('product-gallery')) {
             },
             error: (error) => {
               console.error('Swiper error:', error);
+            },
+            slideChange: () => {
+              // Smooth animation when changing slides
+              const activeSlide = this.querySelector('.swiper-slide-active');
+              if (activeSlide) {
+                activeSlide.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.1, 0.25, 1)';
+              }
+            },
+            touchStart: () => {
+              // Improve responsiveness on touch
+              const wrapper = this.querySelector('.swiper-wrapper');
+              if (wrapper) {
+                wrapper.style.transitionTimingFunction = 'cubic-bezier(0.25, 0.1, 0.25, 1)';
+              }
             }
           }
         };
