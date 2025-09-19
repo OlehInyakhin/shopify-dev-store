@@ -1,0 +1,210 @@
+{% comment %}
+  Renders product variant selector for lookbook modal
+  
+  Accepts:
+  - product: {Object} Product object with variants data
+  - selected_variant: {Object} Currently selected variant (optional)
+  - unique_id: {String} Unique identifier for this selector instance
+  
+  Usage:
+  {% render 'product-variant-selector', product: product, unique_id: 'lookbook-product-1' %}
+{% endcomment %}
+
+{%- assign current_variant = selected_variant | default: product.variants.first -%}
+{%- assign product_form_id = 'product-form-' | append: unique_id -%}
+
+<div class="product-variant-selector" data-product-id="{{ product.id }}" data-product-handle="{{ product.handle }}">
+  
+  {%- unless product.has_only_default_variant -%}
+    <div class="product-variant-selector__options">
+      {%- for option in product.options_with_values -%}
+        <div class="product-variant-selector__option">
+          <label class="product-variant-selector__label" for="{{ product_form_id }}-option-{{ forloop.index }}">
+            {{ option.name }}
+          </label>
+          
+          {%- if option.name == 'Color' or option.name == 'Colour' -%}
+            {%- comment %} Color swatches {%- endcomment -%}
+            <div class="product-variant-selector__swatches">
+              {%- for value in option.values -%}
+                {%- assign option_disabled = true -%}
+                {%- for variant in product.variants -%}
+                  {%- case forloop.index -%}
+                    {%- when 1 -%}
+                      {%- if variant.option1 == value and variant.available -%}
+                        {%- assign option_disabled = false -%}
+                        {%- break -%}
+                      {%- endif -%}
+                    {%- when 2 -%}
+                      {%- if variant.option2 == value and variant.available -%}
+                        {%- assign option_disabled = false -%}
+                        {%- break -%}
+                      {%- endif -%}
+                    {%- when 3 -%}
+                      {%- if variant.option3 == value and variant.available -%}
+                        {%- assign option_disabled = false -%}
+                        {%- break -%}
+                      {%- endif -%}
+                  {%- endcase -%}
+                {%- endfor -%}
+                
+                <input 
+                  type="radio" 
+                  id="{{ product_form_id }}-option-{{ forloop.parentloop.index }}-{{ forloop.index }}"
+                  name="options[{{ option.name | escape }}]"
+                  value="{{ value | escape }}"
+                  class="product-variant-selector__input"
+                  {% if current_variant.options contains value %}checked{% endif %}
+                  {% if option_disabled %}disabled{% endif %}
+                  data-option-index="{{ forloop.parentloop.index0 }}"
+                >
+                <label 
+                  class="product-variant-selector__swatch{% if option_disabled %} product-variant-selector__swatch--disabled{% endif %}"
+                  for="{{ product_form_id }}-option-{{ forloop.parentloop.index }}-{{ forloop.index }}"
+                  title="{{ value | escape }}"
+                  style="background-color: {{ value | handle | remove: '-' }};"
+                >
+                  <span class="visually-hidden">{{ value }}</span>
+                </label>
+              {%- endfor -%}
+            </div>
+          {%- else -%}
+            {%- comment %} Dropdown for other options {%- endcomment -%}
+            <select 
+              class="product-variant-selector__select"
+              id="{{ product_form_id }}-option-{{ forloop.index }}"
+              name="options[{{ option.name | escape }}]"
+              data-option-index="{{ forloop.index0 }}"
+            >
+              {%- for value in option.values -%}
+                {%- assign option_disabled = true -%}
+                {%- for variant in product.variants -%}
+                  {%- case forloop.parentloop.index -%}
+                    {%- when 1 -%}
+                      {%- if variant.option1 == value and variant.available -%}
+                        {%- assign option_disabled = false -%}
+                        {%- break -%}
+                      {%- endif -%}
+                    {%- when 2 -%}
+                      {%- if variant.option2 == value and variant.available -%}
+                        {%- assign option_disabled = false -%}
+                        {%- break -%}
+                      {%- endif -%}
+                    {%- when 3 -%}
+                      {%- if variant.option3 == value and variant.available -%}
+                        {%- assign option_disabled = false -%}
+                        {%- break -%}
+                      {%- endif -%}
+                  {%- endcase -%}
+                {%- endfor -%}
+                
+                <option 
+                  value="{{ value | escape }}"
+                  {% if current_variant.options contains value %}selected{% endif %}
+                  {% if option_disabled %}disabled{% endif %}
+                >
+                  {{ value }}
+                  {%- if option_disabled %} - Sold out{% endif %}
+                </option>
+              {%- endfor -%}
+            </select>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- endunless -%}
+  
+  {%- comment %} Quantity selector {%- endcomment -%}
+  <div class="product-variant-selector__quantity">
+    <label class="product-variant-selector__label" for="{{ product_form_id }}-quantity">
+      Quantity
+    </label>
+    <div class="quantity-input">
+      <button 
+        class="quantity-input__button quantity-input__button--minus"
+        type="button"
+        aria-label="Decrease quantity"
+      >
+        {% render 'icon-minus' %}
+      </button>
+      <input 
+        class="quantity-input__input"
+        type="number"
+        id="{{ product_form_id }}-quantity"
+        name="quantity"
+        value="1"
+        min="1"
+        max="{{ current_variant.inventory_quantity | default: 99 }}"
+        step="1"
+        aria-label="Product quantity"
+      >
+      <button 
+        class="quantity-input__button quantity-input__button--plus"
+        type="button"
+        aria-label="Increase quantity"
+      >
+        {% render 'icon-plus' %}
+      </button>
+    </div>
+  </div>
+  
+  {%- comment %} Price display {%- endcomment -%}
+  <div class="product-variant-selector__price">
+    <span class="price price--current" data-current-price>
+      {{ current_variant.price | money }}
+    </span>
+    {%- if current_variant.compare_at_price > current_variant.price -%}
+      <span class="price price--compare" data-compare-price>
+        {{ current_variant.compare_at_price | money }}
+      </span>
+    {%- endif -%}
+  </div>
+  
+  {%- comment %} Stock status {%- endcomment -%}
+  <div class="product-variant-selector__stock" data-stock-status>
+    {%- if current_variant.available -%}
+      {%- if current_variant.inventory_management == 'shopify' -%}
+        {%- if current_variant.inventory_quantity <= 5 and current_variant.inventory_quantity > 0 -%}
+          <span class="stock-status stock-status--low">Only {{ current_variant.inventory_quantity }} left!</span>
+        {%- elsif current_variant.inventory_quantity > 5 -%}
+          <span class="stock-status stock-status--in-stock">In stock</span>
+        {%- else -%}
+          <span class="stock-status stock-status--in-stock">Available</span>
+        {%- endif -%}
+      {%- else -%}
+        <span class="stock-status stock-status--in-stock">Available</span>
+      {%- endif -%}
+    {%- else -%}
+      <span class="stock-status stock-status--out-of-stock">Sold out</span>
+    {%- endif -%}
+  </div>
+  
+  {%- comment %} Add to cart button {%- endcomment -%}
+  <button 
+    type="button"
+    class="button button--primary product-variant-selector__add-to-cart"
+    data-add-to-cart
+    data-variant-id="{{ current_variant.id }}"
+    {% unless current_variant.available %}disabled{% endunless %}
+  >
+    <span class="add-to-cart-text">
+      {%- if current_variant.available -%}
+        Add to Cart - {{ current_variant.price | money }}
+      {%- else -%}
+        Sold out
+      {%- endif -%}
+    </span>
+    <span class="add-to-cart-loading hidden">
+      <svg class="spinner" width="16" height="16" viewBox="0 0 16 16">
+        <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="31.416" stroke-dashoffset="31.416">
+          <animate attributeName="stroke-dasharray" dur="2s" values="0 31.416;15.708 15.708;0 31.416" repeatCount="indefinite"/>
+          <animate attributeName="stroke-dashoffset" dur="2s" values="0;-15.708;-31.416" repeatCount="indefinite"/>
+        </circle>
+      </svg>
+      Adding...
+    </span>
+  </button>
+  
+  {%- comment %} Hidden variant ID input for form submission {%- endcomment -%}
+  <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id-input>
+</div>

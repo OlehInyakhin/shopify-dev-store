@@ -1,0 +1,257 @@
+{{ 'component-lookbook.css' | asset_url | stylesheet_tag }}
+<script src="{{ 'lookbook.js' | asset_url }}" defer="defer"></script>
+
+{%- style -%}
+  .section-{{ section.id }}-padding {
+    padding-top: {{ section.settings.padding_top | times: 0.75 | round: 0 }}px;
+    padding-bottom: {{ section.settings.padding_bottom | times: 0.75 | round: 0 }}px;
+  }
+
+  @media screen and (min-width: 750px) {
+    .section-{{ section.id }}-padding {
+      padding-top: {{ section.settings.padding_top }}px;
+      padding-bottom: {{ section.settings.padding_bottom }}px;
+    }
+  }
+
+  .lookbook-section-{{ section.id }} {
+    {% if section.settings.background_color != blank %}
+      background-color: {{ section.settings.background_color }};
+    {% endif %}
+    {% if section.settings.background_image != blank %}
+      background-image: url('{{ section.settings.background_image | image_url }}');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    {% endif %}
+  }
+{%- endstyle -%}
+
+<div class="lookbook-section lookbook-section-{{ section.id }} section-{{ section.id }}-padding gradient color-{{ section.settings.color_scheme }}">
+  <div class="page-width">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when 'lookbook_item' -%}
+          <div class="lookbook-container{% if block.settings.layout == 'image_first' %} lookbook-container--image-first{% endif %}" {{ block.shopify_attributes }}>
+            
+            {%- if block.settings.lookbook_image != blank -%}
+              <div class="lookbook-image-wrapper">
+                <img
+                  src="{{ block.settings.lookbook_image | image_url: width: 800 }}"
+                  alt="{{ block.settings.lookbook_image.alt | escape }}"
+                  class="lookbook-image"
+                  width="{{ block.settings.lookbook_image.width }}"
+                  height="{{ block.settings.lookbook_image.height }}"
+                  loading="lazy"
+                >
+              </div>
+            {%- endif -%}
+            
+            <div class="lookbook-content">
+              {%- if block.settings.heading != blank -%}
+                <h2 class="lookbook-heading h1">{{ block.settings.heading }}</h2>
+              {%- endif -%}
+              
+              {%- if block.settings.text != blank -%}
+                <div class="lookbook-text rte">{{ block.settings.text }}</div>
+              {%- endif -%}
+              
+              {%- if block.settings.button_label != blank and block.settings.products != blank -%}
+                <button 
+                   class="button button--primary"
+                   data-lookbook-trigger
+                   data-lookbook-image="{{ block.settings.lookbook_image | image_url: width: 1200 }}"
+                   data-lookbook-products='[
+                     {%- for product in block.settings.products -%}
+                       {
+                         "id": {{ product.id }},
+                         "title": {{ product.title | json }},
+                         "handle": {{ product.handle | json }},
+                         "price": {{ product.price | json }},
+                         "price_min": {{ product.price_min | json }},
+                         "price_max": {{ product.price_max | json }},
+                         "compare_at_price": {{ product.compare_at_price | json }},
+                         "compare_at_price_min": {{ product.compare_at_price_min | json }},
+                         "compare_at_price_max": {{ product.compare_at_price_max | json }},
+                         "url": {{ product.url | json }},
+                         "image": {{ product.featured_image | image_url: width: 300 | json }},
+                         "available": {{ product.available | json }},
+                         "has_only_default_variant": {{ product.has_only_default_variant | json }},
+                         "options": {{ product.options | json }},
+                         "variants": [
+                           {%- for variant in product.variants -%}
+                             {
+                               "id": {{ variant.id }},
+                               "title": {{ variant.title | json }},
+                               "price": {{ variant.price | json }},
+                               "compare_at_price": {{ variant.compare_at_price | json }},
+                               "available": {{ variant.available | json }},
+                               "inventory_quantity": {{ variant.inventory_quantity | json }},
+                               "inventory_management": {{ variant.inventory_management | json }},
+                               "inventory_policy": {{ variant.inventory_policy | json }},
+                               "option1": {{ variant.option1 | json }},
+                               "option2": {{ variant.option2 | json }},
+                               "option3": {{ variant.option3 | json }},
+                               "featured_image": {% if variant.featured_image %}{{ variant.featured_image | image_url: width: 300 | json }}{% else %}null{% endif %},
+                               "sku": {{ variant.sku | json }},
+                               "weight": {{ variant.weight | json }},
+                               "weight_unit": {{ variant.weight_unit | json }}
+                             }{% unless forloop.last %},{% endunless %}
+                           {%- endfor -%}
+                         ]
+                       }{% unless forloop.last %},{% endunless %}
+                     {%- endfor -%}
+                   ]'
+                 >
+                   {{ block.settings.button_label }}
+                 </button>
+              {%- endif -%}
+            </div>
+          </div>
+      {%- endcase -%}
+    {%- endfor -%}
+  </div>
+</div>
+
+<!-- Lookbook Modal -->
+<div class="lookbook-modal" id="lookbook-modal" aria-hidden="true">
+  <div class="lookbook-modal__overlay" data-lookbook-close></div>
+  <div class="lookbook-modal__content">
+    <button class="lookbook-modal__close" data-lookbook-close aria-label="Close modal">
+      {% render 'icon-close' %}
+    </button>
+    
+    <div class="lookbook-modal__image-container">
+      <img class="lookbook-modal__image" src="" alt="Lookbook" loading="lazy">
+    </div>
+    
+    <div class="lookbook-modal__content-info">
+      <h3 class="lookbook-modal__title h2">Shop the Look</h3>
+      <div class="lookbook-modal__products"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Cart Notifications -->
+<div class="cart-notifications" id="cart-notifications" aria-live="polite"></div>
+
+{% schema %}
+{
+  "name": "LookBook",
+  "tag": "section",
+  "class": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background color"
+    },
+    {
+      "type": "image_picker",
+      "id": "background_image",
+      "label": "Background image"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 36
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 4,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 36
+    }
+  ],
+  "blocks": [
+    {
+      "type": "lookbook_item",
+      "name": "LookBook Item",
+      "settings": [
+        {
+          "type": "inline_richtext",
+          "id": "heading",
+          "default": "Shop the Look",
+          "label": "Heading"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "default": "<p>Discover our curated collection and get the complete look.</p>",
+          "label": "Description"
+        },
+        {
+          "type": "image_picker",
+          "id": "lookbook_image",
+          "label": "Lookbook Image"
+        },
+        {
+          "type": "select",
+          "id": "layout",
+          "options": [
+            {
+              "value": "image_first",
+              "label": "Image first"
+            },
+            {
+              "value": "text_first",
+              "label": "Text first"
+            }
+          ],
+          "default": "image_first",
+          "label": "Desktop layout",
+          "info": "Image is always first on mobile."
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "default": "Shop the Look",
+          "label": "Button label"
+        },
+        {
+          "type": "header",
+          "content": "Products"
+        },
+        {
+          "type": "product_list",
+          "id": "products",
+          "label": "Products",
+          "limit": 50
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "LookBook",
+      "blocks": [
+        {
+          "type": "lookbook_item"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
